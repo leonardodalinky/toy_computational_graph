@@ -11,6 +11,22 @@ if TYPE_CHECKING:
 class Value:
     def __init__(self, op: Optional[Operation]):
         self.op = op
+        self.grad = 0.
+
+    def zero_grad(self):
+        self.grad = 0.
+
+    ##
+    # Gradient related.
+    ##
+
+    def backward(self, grad_output: Optional[float] = None):
+        grad_output = grad_output if grad_output is not None else 1.
+        self.grad += grad_output
+        if self.op is not None:
+            prev_grads = self.op.backward(grad_output, ctx=self.op.ctx)
+            for input, prev_grad in zip(self.op.inputs, prev_grads):
+                input.backward(prev_grad)
 
 
 class Scalar(Value):
@@ -18,14 +34,18 @@ class Scalar(Value):
         super().__init__(op)
         self._value = float(value)
 
+    ##
+    # Define some basic math functions.
+    ##
+
     def __add__(self, other):
         from operation import AddOperation
         if isinstance(other, Scalar):
             op = AddOperation()
-            return op([self, other])
+            return op(self, other)
         elif isinstance(other, numbers.Number):
             op = AddOperation()
-            return op([self, Scalar(other)])
+            return op(self, Scalar(other))
         else:
             raise TypeError("unsupported type")
 
@@ -36,10 +56,10 @@ class Scalar(Value):
         from operation import SubOperation
         if isinstance(other, Scalar):
             op = SubOperation()
-            return op([self, other])
+            return op(self, other)
         elif isinstance(other, numbers.Number):
             op = SubOperation()
-            return op([self, Scalar(other)])
+            return op(self, Scalar(other))
         else:
             raise TypeError("unsupported type")
 
@@ -55,10 +75,10 @@ class Scalar(Value):
         from operation import MulOperation
         if isinstance(other, Scalar):
             op = MulOperation()
-            return op([self, other])
+            return op(self, other)
         elif isinstance(other, numbers.Number):
             op = MulOperation()
-            return op([self, Scalar(other)])
+            return op(self, Scalar(other))
         else:
             raise TypeError("unsupported type")
 
@@ -69,10 +89,10 @@ class Scalar(Value):
         from operation import DivOperation
         if isinstance(other, Scalar):
             op = DivOperation()
-            return op([self, other])
+            return op(self, other)
         elif isinstance(other, numbers.Number):
             op = DivOperation()
-            return op([self, Scalar(other)])
+            return op(self, Scalar(other))
         else:
             raise TypeError("unsupported type")
 
