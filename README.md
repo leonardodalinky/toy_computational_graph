@@ -14,12 +14,18 @@ Here is a quick example:
 ```python
 from value import Scalar
 
-x = Scalar(10)
-y = Scalar(2)
-r = x + 2 * y
+x = Scalar(8)
+y = Scalar(3)
+r = (x * x + 1) / (y * y - 1)
 r.backward()
-print(f"x={x}, y={y}, r=x+2*y={r}")
+print(f"x={x}, y={y}, r=(x*x+1)/(y*y-1)={r}")
 print(f"=> x.grad={x.grad}, y.grad={y.grad}")
+```
+
+And the result is:
+```
+x=8.0, y=3.0, r=(x*x+1)/(y*y-1)=8.125
+=> x.grad=2.0, y.grad=-6.09375
 ```
 
 ## How it works
